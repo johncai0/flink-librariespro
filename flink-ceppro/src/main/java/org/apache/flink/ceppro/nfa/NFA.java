@@ -610,9 +610,10 @@ public class NFA<T> {
 					final DeweyNumber currentVersion = computationState.getVersion().increase(takeBranchesToVisit);
 					final DeweyNumber nextVersion = new DeweyNumber(currentVersion).addStage();
 					takeBranchesToVisit--;
-
+					//执行put的时候，已经将event put到cacheBuffer中了。
 					final NodeId newEntry = sharedBufferAccessor.put(
 						currentState.getName(),
+						//将event初始化到eventCacheBuffer
 						event.getEventId(),
 						previousEntry,
 						currentVersion,

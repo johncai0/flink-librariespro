@@ -33,7 +33,7 @@ public class CepTest {
         SingleOutputStreamOperator<Tuple3<String, Long, String>> source = env.fromElements(
                 new Tuple3<String, Long, String>("a", 1000000001000L, "22")
                 , new Tuple3<String, Long, String>("b", 1000000002000L, "23")
-                , new Tuple3<String, Long, String>("b", 1000000003000L, "23")
+                , new Tuple3<String, Long, String>("a", 1000000003000L, "23")
                 , new Tuple3<String, Long, String>("c", 1000000004000L, "23")
                 , new Tuple3<String, Long, String>("b", 1000000005000L, "23")
                 , new Tuple3<String, Long, String>("d", 1000000005000L, "23")
@@ -74,7 +74,7 @@ public class CepTest {
                         return value.f0.equals("a");
                     }
                 })
-                .next("middle")
+                .followedBy("middle")
                 .where(new RichIterativeCondition<Tuple3<String, Long, String>>() {
                     @Override
                     public boolean filter(Tuple3<String, Long, String> value, Context<Tuple3<String, Long, String>> ctx) throws Exception {
@@ -105,7 +105,7 @@ public class CepTest {
                 .within(Time.seconds(10));
         Map<String, Pattern<Tuple3<String, Long, String>, ?>> patternMap = new HashMap<String, Pattern<Tuple3<String, Long, String>, ?>>(1);
         patternMap.put("johnPattern", pattern);
-        patternMap.put("johnPattern1",pattern1);
+        patternMap.put("johnPattern1",pattern);
         CEP
                 .pattern(source, patternMap)
                 .select(new RichPatternSelectFunction<Tuple3<String, Long, String>, Map<Tuple2<String, String>, List<Tuple3<String, Long, String>>>>() {

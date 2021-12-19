@@ -98,6 +98,7 @@ public class SharedBufferAccessor<V> implements AutoCloseable {
 		Lockable<SharedBufferNode> currentNode = sharedBuffer.getEntry(currentNodeId);
 		if (currentNode == null) {
 			currentNode = new Lockable<>(new SharedBufferNode(), 0);
+			//增加event的引用
 			lockEvent(eventId);
 		}
 
