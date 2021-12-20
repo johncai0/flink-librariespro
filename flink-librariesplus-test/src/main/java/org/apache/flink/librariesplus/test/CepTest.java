@@ -106,6 +106,7 @@ public class CepTest {
         Map<String, Pattern<Tuple3<String, Long, String>, ?>> patternMap = new HashMap<String, Pattern<Tuple3<String, Long, String>, ?>>(1);
         patternMap.put("johnPattern", pattern);
         patternMap.put("johnPattern1",pattern);
+
         CEP
                 .pattern(source, patternMap)
                 .select(new RichPatternSelectFunction<Tuple3<String, Long, String>, Map<Tuple2<String, String>, List<Tuple3<String, Long, String>>>>() {

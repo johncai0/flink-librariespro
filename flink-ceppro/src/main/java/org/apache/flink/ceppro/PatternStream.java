@@ -52,6 +52,7 @@ import static org.apache.flink.util.Preconditions.checkNotNull;
 public class PatternStream<T> {
 
 	private final PatternStreamBuilder<T> builder;
+	private PatternChangeListener<T> changeListener = null;
 
 	private PatternStream(final PatternStreamBuilder<T> builder) {
 		this.builder = checkNotNull(builder);
@@ -59,6 +60,11 @@ public class PatternStream<T> {
 
 	PatternStream(final DataStream<T> inputStream, final Map<String,Pattern<T, ?>> patterns) {
 		this(PatternStreamBuilder.forStreamAndPattern(inputStream, patterns));
+	}
+
+	public PatternStream<T> registerListener(PatternChangeListener<T> changeListener) {
+		this.changeListener = changeListener;
+		return this;
 	}
 
 	PatternStream<T> withComparator(final EventComparator<T> comparator) {
@@ -109,7 +115,8 @@ public class PatternStream<T> {
 	public <R> SingleOutputStreamOperator<R> process(
 			final PatternProcessFunction<T, R> patternProcessFunction,
 			final TypeInformation<R> outTypeInfo) {
-
+		if (this.changeListener != null)
+			patternProcessFunction.registerListener(changeListener);
 		return builder.build(
 			outTypeInfo,
 			builder.clean(patternProcessFunction));

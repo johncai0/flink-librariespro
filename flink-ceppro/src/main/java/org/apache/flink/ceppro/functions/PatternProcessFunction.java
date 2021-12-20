@@ -21,7 +21,10 @@ package org.apache.flink.ceppro.functions;
 import org.apache.flink.annotation.PublicEvolving;
 import org.apache.flink.api.common.functions.AbstractRichFunction;
 import org.apache.flink.api.java.tuple.Tuple2;
+import org.apache.flink.ceppro.PatternChangeListener;
+import org.apache.flink.ceppro.pattern.Pattern;
 import org.apache.flink.ceppro.time.TimeContext;
+import org.apache.flink.configuration.Configuration;
 import org.apache.flink.util.Collector;
 import org.apache.flink.util.OutputTag;
 
@@ -43,6 +46,46 @@ import java.util.Map;
  */
 @PublicEvolving
 public abstract class PatternProcessFunction<IN, OUT> extends AbstractRichFunction {
+
+	private PatternChangeListener<IN> changeListener = null;
+	private boolean needDynamic = false;
+
+	public void registerListener(PatternChangeListener<IN> changeListener) {
+		this.changeListener = changeListener;
+		this.needDynamic = true;
+	}
+
+	public boolean needChange() {
+		if (changeListener != null) {
+			return changeListener.needChange();
+		}
+		return false;
+	}
+
+	public long getUpdateInterval() {
+		if (changeListener != null) {
+			return changeListener.getUpdateInterval();
+		}
+		return 0;
+	}
+
+	public boolean needDynamicPattern() {return this.needDynamic;}
+
+	@Override
+	public void open(Configuration parameters) throws Exception {
+		super.open(parameters);
+		if (this.changeListener != null) changeListener.open();
+	}
+	@Override
+	public void close() throws Exception {
+		super.close();
+		if (this.changeListener != null) changeListener.close();
+	}
+
+	public Map<String, Pattern<IN,?>> getNewPattern() {
+		if (changeListener != null) return changeListener.getNewPattern();
+		return null;
+	}
 
 	/**
 	 * Generates resulting elements given a map of detected pattern events. The events

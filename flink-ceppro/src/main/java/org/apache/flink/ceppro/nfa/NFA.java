@@ -93,6 +93,12 @@ public class NFA<T> {
 	private final Map<String, State<T>> states;
 	private final String key;
 
+	public boolean equals(NFA<T> nfa) {
+		return nfa != null &&
+				this.states.equals(nfa.getStates()) &&
+				key.equals(nfa.getKey());
+	}
+
 	/**
 	 * The length of a windowed pattern, as specified using the
 	 * {@link org.apache.flink.ceppro.pattern.Pattern#within(Time)}  Pattern.within(Time)}
@@ -116,6 +122,8 @@ public class NFA<T> {
 		this.key = key;
 		this.states = loadStates(validStates);
 	}
+
+	public String getKey() {return key;}
 
 	private Map<String, State<T>> loadStates(final Collection<State<T>> validStates) {
 		Map<String, State<T>> tmp = new HashMap<>(4);

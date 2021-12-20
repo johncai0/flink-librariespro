@@ -41,6 +41,7 @@ import org.apache.flink.ceppro.nfa.aftermatch.AfterMatchSkipStrategy;
 import org.apache.flink.ceppro.nfa.compiler.NFACompiler;
 import org.apache.flink.ceppro.nfa.sharedbuffer.SharedBuffer;
 import org.apache.flink.ceppro.nfa.sharedbuffer.SharedBufferAccessor;
+import org.apache.flink.ceppro.pattern.Pattern;
 import org.apache.flink.ceppro.time.TimerService;
 import org.apache.flink.configuration.Configuration;
 import org.apache.flink.metrics.Counter;
@@ -60,6 +61,8 @@ import org.apache.flink.streaming.runtime.streamrecord.StreamRecord;
 import org.apache.flink.streaming.runtime.tasks.StreamTask;
 import org.apache.flink.util.OutputTag;
 import org.apache.flink.util.Preconditions;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 import javax.annotation.Nullable;
 
@@ -80,7 +83,7 @@ import java.util.stream.Stream;
 public class CepOperator<IN, KEY, OUT>
         extends AbstractUdfStreamOperator<OUT, PatternProcessFunction<IN, OUT>>
         implements OneInputStreamOperator<IN, OUT>, Triggerable<KEY, VoidNamespace> {
-
+    private static final Logger LOG = LoggerFactory.getLogger(CepOperator.class);
     private static final long serialVersionUID = -4166778210774160757L;
 
     private static final String LATE_ELEMENTS_DROPPED_METRIC_NAME = "numLateRecordsDropped";
@@ -104,6 +107,8 @@ public class CepOperator<IN, KEY, OUT>
 
     private transient Map<String, NFA<IN>> nfaMap;
 
+    private transient long lastUpdateTimestamp;
+
     /**
      * The last seen watermark. This will be used to
      * decide if an incoming element is late or not.
@@ -124,7 +129,7 @@ public class CepOperator<IN, KEY, OUT>
     /**
      * Strategy which element to skip after a match was found.
      */
-    private final Map<String, AfterMatchSkipStrategy> afterMatchSkipStrategyMap;
+    private Map<String, AfterMatchSkipStrategy> afterMatchSkipStrategyMap;
 
     /**
      * Context passed to user function.
@@ -253,6 +258,44 @@ public class CepOperator<IN, KEY, OUT>
 
         // metrics
         this.numLateRecordsDropped = metrics.counter(LATE_ELEMENTS_DROPPED_METRIC_NAME);
+        this.lastUpdateTimestamp = System.currentTimeMillis();
+    }
+
+    public void checkAndUpdatePattern() throws Exception {
+        PatternProcessFunction<IN, OUT> userFunction = getUserFunction();
+        if (userFunction.needDynamicPattern() &&
+                (System.currentTimeMillis() - this.lastUpdateTimestamp) >= userFunction.getUpdateInterval() &&
+                userFunction.needChange()) {
+            Map<String, Pattern<IN, ?>> newPatterns = userFunction.getNewPattern();
+            if (newPatterns != null && newPatterns.size() > 0) {
+                final boolean timeoutHandling = userFunction instanceof TimedOutPartialMatchHandler;
+                final Map<String,NFACompiler.NFAFactory<IN>> nfaFactoryMap = NFACompiler.compileFactory(newPatterns, timeoutHandling);
+
+                //更新跳过策略 滞后处理
+                final Map<String, AfterMatchSkipStrategy> afterMatchSkipStrategyMap = new HashMap<>(newPatterns.size());
+                newPatterns.forEach((k,v) -> afterMatchSkipStrategyMap.put(k,v.getAfterMatchSkipStrategy()));
+                this.afterMatchSkipStrategyMap = afterMatchSkipStrategyMap;
+
+                //更新NFA
+                HashMap<String, NFA<IN>> newNfaMap = new HashMap<>(newPatterns.size());
+                Set<String> changedKey = new HashSet<>(newPatterns.size());
+                for (Map.Entry<String, NFACompiler.NFAFactory<IN>> entry : nfaFactoryMap.entrySet()) {
+                    NFA<IN> nfa = entry.getValue().createNFA();
+                    nfa.open(cepRuntimeContext, new Configuration());
+                    if (!this.nfaMap.containsKey(entry.getKey()) || !this.nfaMap.get(entry.getKey()).equals(nfa)) {
+                        LOG.info("update pattern {}",entry.getKey());
+                        newNfaMap.put(entry.getKey(), nfa);
+                        changedKey.add(entry.getKey());
+                    } else {
+                        LOG.warn("pattern {} is equals old pattern, skip it.",entry.getKey());
+                    }
+                }
+                this.nfaMap = newNfaMap;
+
+                //知道那些pattern发生了变化（判断逻辑还有些问题，除了图外，还有条件）
+
+            }
+        }
     }
 
     @Override
