@@ -23,8 +23,6 @@ import org.apache.flink.annotation.VisibleForTesting;
 import org.apache.flink.api.common.functions.util.FunctionUtils;
 import org.apache.flink.api.common.state.MapState;
 import org.apache.flink.api.common.state.MapStateDescriptor;
-import org.apache.flink.api.common.state.ValueState;
-import org.apache.flink.api.common.state.ValueStateDescriptor;
 import org.apache.flink.api.common.typeutils.TypeSerializer;
 import org.apache.flink.api.common.typeutils.base.ListSerializer;
 import org.apache.flink.api.common.typeutils.base.LongSerializer;
@@ -50,13 +48,7 @@ import org.apache.flink.runtime.state.StateInitializationContext;
 import org.apache.flink.runtime.state.VoidNamespace;
 import org.apache.flink.runtime.state.VoidNamespaceSerializer;
 import org.apache.flink.streaming.api.graph.StreamConfig;
-import org.apache.flink.streaming.api.operators.AbstractUdfStreamOperator;
-import org.apache.flink.streaming.api.operators.InternalTimer;
-import org.apache.flink.streaming.api.operators.InternalTimerService;
-import org.apache.flink.streaming.api.operators.OneInputStreamOperator;
-import org.apache.flink.streaming.api.operators.Output;
-import org.apache.flink.streaming.api.operators.TimestampedCollector;
-import org.apache.flink.streaming.api.operators.Triggerable;
+import org.apache.flink.streaming.api.operators.*;
 import org.apache.flink.streaming.runtime.streamrecord.StreamRecord;
 import org.apache.flink.streaming.runtime.tasks.StreamTask;
 import org.apache.flink.util.OutputTag;
@@ -65,8 +57,6 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import javax.annotation.Nullable;
-
-import java.io.IOException;
 import java.util.*;
 import java.util.stream.Stream;
 
@@ -261,8 +251,7 @@ public class CepOperator<IN, KEY, OUT>
         this.lastUpdateTimestamp = System.currentTimeMillis();
     }
 
-    public void checkAndUpdatePattern() throws Exception {
-        PatternProcessFunction<IN, OUT> userFunction = getUserFunction();
+    public void checkAndUpdatePattern(PatternProcessFunction<IN, OUT> userFunction) throws Exception {
         if (userFunction.needDynamicPattern() &&
                 (System.currentTimeMillis() - this.lastUpdateTimestamp) >= userFunction.getUpdateInterval() &&
                 userFunction.needChange()) {
@@ -278,6 +267,8 @@ public class CepOperator<IN, KEY, OUT>
 
                 //更新NFA
                 HashMap<String, NFA<IN>> newNfaMap = new HashMap<>(newPatterns.size());
+                //既然输入了新的pattern和对应的key，并且这个key原来已经存在了，所以需要更新，更新的话就需要清空状态
+                //所以需要将这个key记录到changedKey中
                 Set<String> changedKey = new HashSet<>(newPatterns.size());
                 for (Map.Entry<String, NFACompiler.NFAFactory<IN>> entry : nfaFactoryMap.entrySet()) {
                     NFA<IN> nfa = entry.getValue().createNFA();
@@ -293,8 +284,21 @@ public class CepOperator<IN, KEY, OUT>
                 this.nfaMap = newNfaMap;
 
                 //知道那些pattern发生了变化（判断逻辑还有些问题，除了图外，还有条件）
+                //那些pattern需要删除，那么需要进行2步骤
+                Set<String> needDel = userFunction.getDelPatternKey();
+                if (needDel != null && needDel.size() > 0) changedKey.addAll(needDel);
+                if (changedKey.size()>0) cleanBeforeMatch(changedKey);
 
+                //清除SB
+                partialMatches.clean(needDel);
             }
+        }
+    }
+
+    private void cleanBeforeMatch(Set<String> keys) throws Exception {
+//		将原来的为匹配完全的状态清理
+        for (String key:keys) {
+            computationStateMap.remove(key);
         }
     }
 
@@ -512,6 +516,11 @@ public class CepOperator<IN, KEY, OUT>
      * @param timestamp The timestamp of the event
      */
     private void processEvent(Map<String,NFAState> nfaStateMap, IN event, long timestamp) throws Exception {
+        PatternProcessFunction<IN, OUT> userFunction = getUserFunction();
+        if (userFunction.getUpdateInterval() > 0 &&
+                System.currentTimeMillis()-timestamp > userFunction.getUpdateInterval()) {
+            checkAndUpdatePattern(userFunction);
+        }
         try (SharedBufferAccessor<IN> sharedBufferAccessor = partialMatches.getAccessor()) {
             for (String key:nfaStateMap.keySet()) {
                 Collection<Map<Tuple2<String, String>, List<IN>>> patterns =

@@ -90,7 +90,7 @@ public class NFA<T> {
 	 * {@link NFACompiler NFACompiler}.
 	 * These are directly derived from the user-specified pattern.
 	 */
-	private final Map<String, State<T>> states;
+	private Map<String, State<T>> states;
 	private final String key;
 
 	public boolean equals(NFA<T> nfa) {
@@ -124,6 +124,13 @@ public class NFA<T> {
 	}
 
 	public String getKey() {return key;}
+
+	public Map<String, State<T>> getStatesMap(){
+		return states;
+	}
+	public void setStatesMap(Map<String, State<T>> states) {
+		this.states = states;
+	}
 
 	private Map<String, State<T>> loadStates(final Collection<State<T>> validStates) {
 		Map<String, State<T>> tmp = new HashMap<>(4);

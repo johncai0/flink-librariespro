@@ -105,7 +105,7 @@ public class CepTest {
                 .within(Time.seconds(10));
         Map<String, Pattern<Tuple3<String, Long, String>, ?>> patternMap = new HashMap<String, Pattern<Tuple3<String, Long, String>, ?>>(1);
         patternMap.put("johnPattern", pattern);
-        patternMap.put("johnPattern1",pattern);
+        patternMap.put("johnPattern1",pattern1);
 
         CEP
                 .pattern(source, patternMap)

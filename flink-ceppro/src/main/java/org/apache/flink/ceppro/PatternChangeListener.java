@@ -6,6 +6,7 @@ import org.apache.flink.ceppro.util.CustomStringJavaCompiler;
 
 import java.io.Serializable;
 import java.util.Map;
+import java.util.Set;
 
 /**
  * @author johnCai
@@ -34,6 +35,12 @@ public abstract class PatternChangeListener<T> implements Serializable {
      * @return
      */
     abstract public String getNewPatternString();
+
+    /**
+     * 获取需要删除的pattern的set<key>
+     * @return
+     */
+    abstract public Set<String> getDelPatternKey();
 
     public long getUpdateInterval() {
         return 60*1000;

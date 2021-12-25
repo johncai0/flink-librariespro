@@ -92,14 +92,6 @@ public class JavaCustomStringCompilerTest {
         CustomStringJavaCompiler<Pattern<String,?>> compiler = new CustomStringJavaCompiler(configStr);
         Map<String, Pattern<String, ?>> stringPatternMap = compiler.runCustomMethod();
         System.out.println(stringPatternMap);
-        String str1 = "abc";
-        String str2 = "bcd";
-        String str3 = "abc";
-        String str4 = str1;
-        System.out.println(str1.hashCode());
-        System.out.println(str2.hashCode());
-        System.out.println(str3.hashCode());
-        System.out.println(str4.hashCode());
     }
     public static void __main(String[] args) {
         String code = "public class HelloWorld {\n" +

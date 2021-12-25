@@ -30,6 +30,7 @@ import org.apache.flink.util.OutputTag;
 
 import java.util.List;
 import java.util.Map;
+import java.util.Set;
 
 /**
  * It is called with a map of detected events which are identified by their names.
@@ -84,6 +85,11 @@ public abstract class PatternProcessFunction<IN, OUT> extends AbstractRichFuncti
 
 	public Map<String, Pattern<IN,?>> getNewPattern() {
 		if (changeListener != null) return changeListener.getNewPattern();
+		return null;
+	}
+
+	public Set<String> getDelPatternKey() {
+		if (changeListener != null) return changeListener.getDelPatternKey();
 		return null;
 	}
 

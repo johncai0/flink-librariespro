@@ -32,6 +32,7 @@ import org.apache.flink.shaded.guava18.com.google.common.collect.Iterables;
 import java.util.HashMap;
 import java.util.Iterator;
 import java.util.Map;
+import java.util.Set;
 import java.util.stream.Collectors;
 
 /**
@@ -59,6 +60,7 @@ public class SharedBuffer<V> {
 
 	private MapState<EventId, Lockable<V>> eventsBuffer;
 	/** The number of events seen so far in the stream per timestamp. */
+	// TODO: 2021/12/25 这个地方好像没有清的时候，后序可以用state ttl启用自动清除
 	private MapState<Long, Integer> eventsCount;
 	private MapState<NodeId, Lockable<SharedBufferNode>> entries;
 
@@ -96,6 +98,22 @@ public class SharedBuffer<V> {
 			System.err.println(next.getKey()+"\t<===>\t"+next.getValue());
 		}
 		System.err.println("=================="+id+" end====================");
+	}
+
+	public void clean(Set<String> keys) throws Exception {
+		//entryCache
+		SharedBufferAccessor<V> accessor = getAccessor();
+		for (Map.Entry<NodeId, Lockable<SharedBufferNode>> entry : entryCache.entrySet()) {
+			NodeId k = entry.getKey();
+			if (keys.contains(k.getKey())) {
+				accessor.releaseNode(k);
+			}
+		}
+		for (NodeId k : entries.keys()) {
+			if (keys.contains(k.getKey())) {
+				accessor.releaseNode(k);
+			}
+		}
 	}
 
 	public SharedBuffer(KeyedStateStore stateStore, TypeSerializer<V> valueSerializer) {
