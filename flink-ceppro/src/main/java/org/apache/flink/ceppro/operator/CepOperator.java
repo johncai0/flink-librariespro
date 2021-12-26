@@ -266,26 +266,30 @@ public class CepOperator<IN, KEY, OUT>
                 this.afterMatchSkipStrategyMap = afterMatchSkipStrategyMap;
 
                 //更新NFA
-                HashMap<String, NFA<IN>> newNfaMap = new HashMap<>(newPatterns.size());
+                HashMap<String, NFA<IN>> newNfaMap = new HashMap<>(newPatterns.size()+nfaMap.size());
                 //既然输入了新的pattern和对应的key，并且这个key原来已经存在了，所以需要更新，更新的话就需要清空状态
                 //所以需要将这个key记录到changedKey中
                 Set<String> changedKey = new HashSet<>(newPatterns.size());
                 for (Map.Entry<String, NFACompiler.NFAFactory<IN>> entry : nfaFactoryMap.entrySet()) {
                     NFA<IN> nfa = entry.getValue().createNFA();
                     nfa.open(cepRuntimeContext, new Configuration());
-                    if (!this.nfaMap.containsKey(entry.getKey()) || !this.nfaMap.get(entry.getKey()).equals(nfa)) {
+                    if (this.nfaMap.containsKey(entry.getKey())) {
                         LOG.info("update pattern {}",entry.getKey());
-                        newNfaMap.put(entry.getKey(), nfa);
                         changedKey.add(entry.getKey());
-                    } else {
-                        LOG.warn("pattern {} is equals old pattern, skip it.",entry.getKey());
+                    }
+                    newNfaMap.put(entry.getKey(), nfa);
+                }
+                Set<String> needDel = userFunction.getDelPatternKey();
+                if (needDel != null && needDel.size()>0) {
+                    for (String nd : needDel) {
+                        nfaMap.remove(nd);
                     }
                 }
+                newNfaMap.putAll(nfaMap);
                 this.nfaMap = newNfaMap;
 
                 //知道那些pattern发生了变化（判断逻辑还有些问题，除了图外，还有条件）
                 //那些pattern需要删除，那么需要进行2步骤
-                Set<String> needDel = userFunction.getDelPatternKey();
                 if (needDel != null && needDel.size() > 0) changedKey.addAll(needDel);
                 if (changedKey.size()>0) cleanBeforeMatch(changedKey);
 

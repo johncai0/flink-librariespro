@@ -50,6 +50,7 @@ public abstract class PatternProcessFunction<IN, OUT> extends AbstractRichFuncti
 
 	private PatternChangeListener<IN> changeListener = null;
 	private boolean needDynamic = false;
+	private String patternVersion = "";
 
 	public void registerListener(PatternChangeListener<IN> changeListener) {
 		this.changeListener = changeListener;
@@ -58,7 +59,11 @@ public abstract class PatternProcessFunction<IN, OUT> extends AbstractRichFuncti
 
 	public boolean needChange() {
 		if (changeListener != null) {
-			return changeListener.needChange();
+			String newVersion = changeListener.patternVersion();
+			if (!patternVersion.equals(newVersion) && newVersion != null) {
+				patternVersion = newVersion;
+				return true;
+			}
 		}
 		return false;
 	}

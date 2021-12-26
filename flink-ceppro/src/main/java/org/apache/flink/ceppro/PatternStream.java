@@ -58,8 +58,17 @@ public class PatternStream<T> {
 		this.builder = checkNotNull(builder);
 	}
 
+	private PatternStream(final PatternStreamBuilder<T> builder,PatternChangeListener<T> changeListener) {
+		this.changeListener = changeListener;
+		this.builder = checkNotNull(builder);
+	}
+
 	PatternStream(final DataStream<T> inputStream, final Map<String,Pattern<T, ?>> patterns) {
 		this(PatternStreamBuilder.forStreamAndPattern(inputStream, patterns));
+	}
+
+	PatternStream(final DataStream<T> inputStream, final Map<String,Pattern<T, ?>> patterns,PatternChangeListener<T> changeListener) {
+		this(PatternStreamBuilder.forStreamAndPattern(inputStream, patterns),changeListener);
 	}
 
 	public PatternStream<T> registerListener(PatternChangeListener<T> changeListener) {

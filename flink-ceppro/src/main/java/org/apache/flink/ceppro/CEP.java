@@ -42,6 +42,16 @@ public class CEP {
 			Map<String,Pattern<T, ?>> patternMap) {
 		return new PatternStream<>(input, patternMap);
 	}
+	public static <T> PatternStream<T> pattern(
+			DataStream<T> input,
+			Map<String,Pattern<T, ?>> patternMap,PatternChangeListener<T> listener) {
+		return new PatternStream<>(input, patternMap,listener);
+	}
+	public static <T> PatternStream<T> fromPatternChangeListener(DataStream<T> input,PatternChangeListener<T> listener) {
+		Map<String,Pattern<T,?>> patternMap = listener.getInitPattern();
+		assert patternMap.size()>0;
+		return pattern(input,patternMap,listener);
+	}
 
 	/**
 	 * Creates a {@link PatternStream} from an input data stream and a pattern.

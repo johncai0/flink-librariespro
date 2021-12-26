@@ -93,11 +93,6 @@ public class NFA<T> {
 	private Map<String, State<T>> states;
 	private final String key;
 
-	public boolean equals(NFA<T> nfa) {
-		return nfa != null &&
-				this.states.equals(nfa.getStates()) &&
-				key.equals(nfa.getKey());
-	}
 
 	/**
 	 * The length of a windowed pattern, as specified using the
