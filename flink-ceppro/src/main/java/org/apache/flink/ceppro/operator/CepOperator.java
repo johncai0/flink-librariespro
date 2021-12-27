@@ -430,7 +430,7 @@ public class CepOperator<IN, KEY, OUT>
 
         // STEP 5
         updateLastSeenWatermark(timerService.currentWatermark());
-        partialMatches.printShardBufferInfo();
+        //partialMatches.printShardBufferInfo();
     }
 
     private Map<String,NFAState> convNFAStateToMap() throws Exception {
