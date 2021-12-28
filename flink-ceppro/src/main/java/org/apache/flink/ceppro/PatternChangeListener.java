@@ -2,10 +2,11 @@ package org.apache.flink.ceppro;
 
 
 import org.apache.commons.lang3.StringUtils;
+import org.apache.flink.api.common.functions.AbstractRichFunction;
 import org.apache.flink.ceppro.pattern.Pattern;
 import org.apache.flink.ceppro.util.CustomStringJavaCompiler;
+import org.apache.flink.configuration.Configuration;
 
-import java.io.Serializable;
 import java.util.Map;
 import java.util.Set;
 
@@ -14,16 +15,20 @@ import java.util.Set;
  * @version 1.0
  * @date 2021/12/19 下午8:51
  */
-public abstract class PatternChangeListener<T> implements Serializable {
+public abstract class PatternChangeListener<T> extends AbstractRichFunction {
 
     /**
      * 打开获取pattern字符串的连接等等
      */
-    abstract public void open();
+    @Override
+    public void open(Configuration parameters) throws Exception  {
+        super.open(parameters);
+    };
     /**
      * 关闭获取pattern字符串的连接等等
      */
-    abstract public void close();
+    @Override
+    public void close() throws Exception {super.close();}
 
     /**
      * 判断pattern是否需要变更

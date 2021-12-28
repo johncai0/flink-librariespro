@@ -59,10 +59,14 @@ public abstract class PatternProcessFunction<IN, OUT> extends AbstractRichFuncti
 
 	public boolean needChange() {
 		if (changeListener != null) {
-			String newVersion = changeListener.patternVersion();
-			if (!patternVersion.equals(newVersion) && newVersion != null) {
-				patternVersion = newVersion;
-				return true;
+			try {
+				String newVersion = changeListener.patternVersion();
+				if (!patternVersion.equals(newVersion) && newVersion != null) {
+					patternVersion = newVersion;
+					return true;
+				}
+			} catch (Exception e) {
+				e.printStackTrace();
 			}
 		}
 		return false;
@@ -80,7 +84,7 @@ public abstract class PatternProcessFunction<IN, OUT> extends AbstractRichFuncti
 	@Override
 	public void open(Configuration parameters) throws Exception {
 		super.open(parameters);
-		if (this.changeListener != null) changeListener.open();
+		if (this.changeListener != null) changeListener.open(parameters);
 	}
 	@Override
 	public void close() throws Exception {

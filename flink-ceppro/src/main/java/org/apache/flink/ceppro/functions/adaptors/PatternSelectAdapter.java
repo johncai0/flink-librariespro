@@ -45,6 +45,7 @@ public class PatternSelectAdapter<IN, OUT> extends PatternProcessFunction<IN, OU
 
 	@Override
 	public void open(final Configuration parameters) throws Exception {
+		super.open(parameters);
 		FunctionUtils.setFunctionRuntimeContext(selectFunction, getRuntimeContext());
 		FunctionUtils.openFunction(selectFunction, parameters);
 	}

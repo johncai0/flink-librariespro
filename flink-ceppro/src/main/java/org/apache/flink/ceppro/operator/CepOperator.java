@@ -234,7 +234,6 @@ public class CepOperator<IN, KEY, OUT>
                 "watermark-callbacks",
                 VoidNamespaceSerializer.INSTANCE,
                 this);
-
         nfaMap = new HashMap<>(nfaFactoryMap.size());
         for (Map.Entry<String, NFACompiler.NFAFactory<IN>> entry : nfaFactoryMap.entrySet()) {
             NFA<IN> nfa = entry.getValue().createNFA();
