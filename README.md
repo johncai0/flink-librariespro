@@ -139,12 +139,12 @@ redis样例数据
 ---
 pattern versionKey
 
-![avatar](/image/ptv.png)
+![avatar](./image/ptv.png)
 
 del pattern keys
 
-![avatar](/image/del_pattern_key.png)
+![avatar](./image/del_pattern_key.png)
 
 new pattern string
 
-![avatar](/image/pattern_v1.0.png)
+![avatar](./image/pattern_v1.0.png)
