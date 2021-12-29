@@ -109,6 +109,7 @@ public class SharedBuffer<V> {
 				accessor.releaseNode(k);
 			}
 		}
+
 		for (NodeId k : entries.keys()) {
 			if (keys.contains(k.getKey())) {
 				accessor.releaseNode(k);

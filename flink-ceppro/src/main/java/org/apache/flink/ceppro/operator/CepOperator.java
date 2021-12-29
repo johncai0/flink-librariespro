@@ -314,10 +314,18 @@ public class CepOperator<IN, KEY, OUT>
             }
     }
 
+    private void update() throws Exception {
+        PatternProcessFunction<IN, OUT> userFunction = getUserFunction();
+        if (userFunction.getUpdateInterval() > 0 &&
+                System.currentTimeMillis()-this.timerService.currentProcessingTime() > userFunction.getUpdateInterval()) {
+            checkAndUpdatePattern(userFunction);
+        }
+    }
+
     @Override
     public void processElement(StreamRecord<IN> element) throws Exception {
         if (isProcessingTime) {
-
+            update();
             if (comparator == null) {
                 Map<String,NFAState> stateMap= convNFAStateToMap();
                 long timestamp = getProcessingTimeService().getCurrentProcessingTime();
@@ -385,7 +393,11 @@ public class CepOperator<IN, KEY, OUT>
 
     @Override
     public void onEventTime(InternalTimer<KEY, VoidNamespace> timer) throws Exception {
-
+        PatternProcessFunction<IN, OUT> userFunction = getUserFunction();
+        if (userFunction.getUpdateInterval() > 0 &&
+                System.currentTimeMillis()-this.timerService.currentWatermark() > userFunction.getUpdateInterval()) {
+            checkAndUpdatePattern(userFunction);
+        }
         // 1) get the queue of pending elements for the key and the corresponding NFA,
         // 2) process the pending elements in event time order and custom comparator if exists
         //		by feeding them in the NFA
@@ -443,6 +455,7 @@ public class CepOperator<IN, KEY, OUT>
 
     @Override
     public void onProcessingTime(InternalTimer<KEY, VoidNamespace> timer) throws Exception {
+        update();
         // 1) get the queue of pending elements for the key and the corresponding NFA,
         // 2) process the pending elements in process time order and custom comparator if exists
         //		by feeding them in the NFA
@@ -519,11 +532,6 @@ public class CepOperator<IN, KEY, OUT>
      * @param timestamp The timestamp of the event
      */
     private void processEvent(Map<String,NFAState> nfaStateMap, IN event, long timestamp) throws Exception {
-        PatternProcessFunction<IN, OUT> userFunction = getUserFunction();
-        if (userFunction.getUpdateInterval() > 0 &&
-                System.currentTimeMillis()-timestamp > userFunction.getUpdateInterval()) {
-            checkAndUpdatePattern(userFunction);
-        }
         try (SharedBufferAccessor<IN> sharedBufferAccessor = partialMatches.getAccessor()) {
             for (String key:nfaStateMap.keySet()) {
                 Collection<Map<Tuple2<String, String>, List<IN>>> patterns =

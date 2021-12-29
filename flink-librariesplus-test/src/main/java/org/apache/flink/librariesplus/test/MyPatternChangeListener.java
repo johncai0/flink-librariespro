@@ -50,7 +50,7 @@ public class MyPatternChangeListener extends PatternChangeListener<Tuple3<String
         LOG.info("in Pattern Change Lister funcation getNewPatternString.");
         String version = patternVersion();
         String patternStr = jedis.get("pattern_"+version);
-        LOG.info("in Pattern Change Lister funcation getNewPatternString. pattern: {}",patternStr);
+        LOG.info("in Pattern Change Lister funcation getNewPatternString. pattern: \n{}",patternStr);
         if (StringUtils.isNotBlank(patternStr)) {
             return patternStr;
         }
