@@ -29,10 +29,8 @@ import org.apache.flink.util.WrappingRuntimeException;
 
 import org.apache.flink.shaded.guava18.com.google.common.collect.Iterables;
 
-import java.util.HashMap;
-import java.util.Iterator;
-import java.util.Map;
-import java.util.Set;
+import javax.xml.soap.Node;
+import java.util.*;
 import java.util.stream.Collectors;
 
 /**
@@ -110,11 +108,20 @@ public class SharedBuffer<V> {
 			}
 		}
 
+		List<NodeId> list = new ArrayList<>();
 		for (NodeId k : entries.keys()) {
 			if (keys.contains(k.getKey())) {
-				accessor.releaseNode(k);
+				list.add(k);
 			}
 		}
+		for (NodeId nodeId : list) {
+			accessor.releaseNode(nodeId);
+		}
+//		for (NodeId k : entries.keys()) {
+//			if (keys.contains(k.getKey())) {
+//				accessor.releaseNode(k);
+//			}
+//		}
 	}
 
 	public SharedBuffer(KeyedStateStore stateStore, TypeSerializer<V> valueSerializer) {

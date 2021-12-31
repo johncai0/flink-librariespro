@@ -18,6 +18,7 @@
 
 package org.apache.flink.ceppro.operator;
 
+import org.apache.commons.collections.CollectionUtils;
 import org.apache.flink.annotation.Internal;
 import org.apache.flink.annotation.VisibleForTesting;
 import org.apache.flink.api.common.functions.util.FunctionUtils;
@@ -259,11 +260,6 @@ public class CepOperator<IN, KEY, OUT>
                 final boolean timeoutHandling = userFunction instanceof TimedOutPartialMatchHandler;
                 final Map<String,NFACompiler.NFAFactory<IN>> nfaFactoryMap = NFACompiler.compileFactory(newPatterns, timeoutHandling);
 
-                //更新跳过策略 滞后处理
-                final Map<String, AfterMatchSkipStrategy> afterMatchSkipStrategyMap = new HashMap<>(newPatterns.size());
-                newPatterns.forEach((k,v) -> afterMatchSkipStrategyMap.put(k,v.getAfterMatchSkipStrategy()));
-                this.afterMatchSkipStrategyMap = afterMatchSkipStrategyMap;
-
                 //更新NFA
                 HashMap<String, NFA<IN>> newNfaMap = new HashMap<>(newPatterns.size()+nfaMap.size());
                 //既然输入了新的pattern和对应的key，并且这个key原来已经存在了，所以需要更新，更新的话就需要清空状态
@@ -292,10 +288,28 @@ public class CepOperator<IN, KEY, OUT>
                 if (needDel != null && needDel.size() > 0) changedKey.addAll(needDel);
                 if (changedKey.size()>0) cleanBeforeMatch(changedKey);
 
+                //更新跳过策略 滞后处理
+                updateAfterMatchSkipStrategyMap(changedKey,newPatterns);
+
                 //清除SB
                 partialMatches.clean(needDel);
             }
         }
+    }
+
+    private void updateAfterMatchSkipStrategyMap(Set<String> changedKey,Map<String, Pattern<IN, ?>> newPatterns) {
+        if (CollectionUtils.isNotEmpty(changedKey)) {
+            changedKey.forEach(k -> {
+                afterMatchSkipStrategyMap.remove(k);
+            });
+        }
+        newPatterns.forEach((k,v) -> {
+            if (v.getAfterMatchSkipStrategy() != null) {
+                afterMatchSkipStrategyMap.put(k, v.getAfterMatchSkipStrategy());
+            } else {
+                afterMatchSkipStrategyMap.put(k,AfterMatchSkipStrategy.noSkip());
+            }
+        });
     }
 
     private void cleanBeforeMatch(Set<String> keys) throws Exception {

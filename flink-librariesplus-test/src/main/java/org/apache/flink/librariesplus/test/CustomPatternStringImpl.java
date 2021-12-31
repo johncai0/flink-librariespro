@@ -28,22 +28,22 @@ public class CustomPatternStringImpl implements GeneratePatternInterface {
     }
 
     public Map<String,Pattern<Tuple3<String, Long, String>,?>> getPatternMap() {
-        Pattern<Tuple3<String, Long, String>, ?> pattern = Pattern
-                .<Tuple3<String, Long, String>>begin("start")
-                .where(new RichIterativeCondition<Tuple3<String, Long, String>>() {
-                    @Override
-                    public boolean filter(Tuple3<String, Long, String> value, Context<Tuple3<String, Long, String>> ctx) throws Exception {
-                        return value.f0.equals("a");
-                    }
-                })
-                .followedBy("middle")
-                .where(new RichIterativeCondition<Tuple3<String, Long, String>>() {
-                    @Override
-                    public boolean filter(Tuple3<String, Long, String> value, Context<Tuple3<String, Long, String>> ctx) throws Exception {
-                        return value.f0.equals("b");
-                    }
-                }).oneOrMore()
-                .within(Time.seconds(5));
+//        Pattern<Tuple3<String, Long, String>, ?> pattern = Pattern
+//                .<Tuple3<String, Long, String>>begin("start")
+//                .where(new RichIterativeCondition<Tuple3<String, Long, String>>() {
+//                    @Override
+//                    public boolean filter(Tuple3<String, Long, String> value, Context<Tuple3<String, Long, String>> ctx) throws Exception {
+//                        return value.f0.equals("a");
+//                    }
+//                })
+//                .followedBy("middle")
+//                .where(new RichIterativeCondition<Tuple3<String, Long, String>>() {
+//                    @Override
+//                    public boolean filter(Tuple3<String, Long, String> value, Context<Tuple3<String, Long, String>> ctx) throws Exception {
+//                        return value.f0.equals("b");
+//                    }
+//                })
+//                .within(Time.seconds(5));
         Pattern<Tuple3<String, Long, String>, ?> pattern1 = Pattern
                 .<Tuple3<String, Long, String>>begin("start1")
                 .where(new RichIterativeCondition<Tuple3<String, Long, String>>() {
@@ -56,17 +56,12 @@ public class CustomPatternStringImpl implements GeneratePatternInterface {
                 .where(new RichIterativeCondition<Tuple3<String, Long, String>>() {
                     @Override
                     public boolean filter(Tuple3<String, Long, String> value, Context<Tuple3<String, Long, String>> ctx) throws Exception {
-                        return value.f0.equals("c");
+                        return value.f0.equals("e");
                     }
-                }).or(new RichIterativeCondition<Tuple3<String, Long, String>>() {
-                    @Override
-                    public boolean filter(Tuple3<String, Long, String> value, Context<Tuple3<String, Long, String>> ctx) throws Exception {
-                        return value.f0.equals("d");
-                    }
-                }).oneOrMore()
+                })
                 .within(Time.seconds(10));
         Map<String, Pattern<Tuple3<String, Long, String>, ?>> patternMap = new HashMap<String, Pattern<Tuple3<String, Long, String>, ?>>(1);
-        patternMap.put("johnPattern", pattern);
+//        patternMap.put("johnPattern", pattern);
         patternMap.put("johnPattern1",pattern1);
         return patternMap;
     }
