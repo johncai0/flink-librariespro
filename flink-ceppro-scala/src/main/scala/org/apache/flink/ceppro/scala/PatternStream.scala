@@ -24,6 +24,7 @@ import org.apache.flink.ceppro.functions.PatternProcessFunction
 import org.apache.flink.ceppro.{PatternFlatSelectFunction, PatternFlatTimeoutFunction, PatternSelectFunction, PatternTimeoutFunction, PatternStream => JPatternStream}
 import org.apache.flink.streaming.api.scala.{asScalaStream, _}
 import org.apache.flink.util.Collector
+import org.apache.flink.api.java.tuple.Tuple2
 
 import scala.collection.Map
 
@@ -234,12 +235,12 @@ class PatternStream[T](jPatternStream: JPatternStream[T]) {
     * @tparam R Type of the resulting elements
     * @return [[DataStream]] which contains the resulting elements from the pattern select function.
     */
-  def select[R: TypeInformation](patternSelectFun: Map[String, Iterable[T]] => R): DataStream[R] = {
+  def select[R: TypeInformation](patternSelectFun: Map[(String,String), Iterable[T]] => R): DataStream[R] = {
     val cleanFun = cleanClosure(patternSelectFun)
 
     val patternSelectFunction: PatternSelectFunction[T, R] = new PatternSelectFunction[T, R] {
 
-      def select(in: JMap[String, JList[T]]): R = cleanFun(mapToScala(in))
+      def select(in: JMap[Tuple2[String,String], JList[T]]): R = cleanFun(mapToScala(in))
     }
     select(patternSelectFunction)
   }
@@ -267,19 +268,19 @@ class PatternStream[T](jPatternStream: JPatternStream[T]) {
     */
   @deprecated
   def select[L: TypeInformation, R: TypeInformation](
-      patternTimeoutFunction: (Map[String, Iterable[T]], Long) => L) (
-      patternSelectFunction: Map[String, Iterable[T]] => R)
+      patternTimeoutFunction: (Map[(String,String), Iterable[T]], Long) => L) (
+      patternSelectFunction: Map[(String,String), Iterable[T]] => R)
     : DataStream[Either[L, R]] = {
 
     val cleanSelectFun = cleanClosure(patternSelectFunction)
     val cleanTimeoutFun = cleanClosure(patternTimeoutFunction)
 
     val patternSelectFun = new PatternSelectFunction[T, R] {
-      override def select(pattern: JMap[String, JList[T]]): R =
+      override def select(pattern: JMap[Tuple2[String,String], JList[T]]): R =
         cleanSelectFun(mapToScala(pattern))
     }
     val patternTimeoutFun = new PatternTimeoutFunction[T, L] {
-      override def timeout(pattern: JMap[String, JList[T]], timeoutTimestamp: Long): L =
+      override def timeout(pattern: JMap[Tuple2[String,String], JList[T]], timeoutTimestamp: Long): L =
         cleanTimeoutFun(mapToScala(pattern), timeoutTimestamp)
     }
 

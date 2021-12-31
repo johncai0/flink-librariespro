@@ -18,6 +18,7 @@
 
 package org.apache.flink.ceppro.nfa.aftermatch;
 
+import org.apache.flink.api.java.tuple.Tuple2;
 import org.apache.flink.ceppro.nfa.sharedbuffer.EventId;
 
 import java.util.Collection;
@@ -37,9 +38,9 @@ public final class SkipToNextStrategy extends SkipRelativeToWholeMatchStrategy {
 	}
 
 	@Override
-	protected EventId getPruningId(final Collection<Map<String, List<EventId>>> match) {
+	protected EventId getPruningId(final Collection<Map<Tuple2<String,String>, List<EventId>>> match) {
 		EventId pruningId = null;
-		for (Map<String, List<EventId>> resultMap : match) {
+		for (Map<Tuple2<String,String>, List<EventId>> resultMap : match) {
 			for (List<EventId> eventList : resultMap.values()) {
 				pruningId = min(pruningId, eventList.get(0));
 			}

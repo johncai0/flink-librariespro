@@ -18,6 +18,7 @@
 
 package org.apache.flink.ceppro.nfa.aftermatch;
 
+import org.apache.flink.api.java.tuple.Tuple2;
 import org.apache.flink.ceppro.nfa.sharedbuffer.EventId;
 import org.apache.flink.util.FlinkRuntimeException;
 
@@ -50,9 +51,9 @@ abstract class SkipToElementStrategy extends AfterMatchSkipStrategy {
 	}
 
 	@Override
-	protected EventId getPruningId(Collection<Map<String, List<EventId>>> match) {
+	protected EventId getPruningId(Collection<Map<Tuple2<String,String>, List<EventId>>> match) {
 		EventId pruningId = null;
-		for (Map<String, List<EventId>> resultMap : match) {
+		for (Map<Tuple2<String,String>, List<EventId>> resultMap : match) {
 			List<EventId> pruningPattern = resultMap.get(patternName);
 			if (pruningPattern == null || pruningPattern.isEmpty()) {
 				if (shouldThrowException) {

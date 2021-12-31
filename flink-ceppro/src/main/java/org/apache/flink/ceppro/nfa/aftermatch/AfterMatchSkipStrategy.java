@@ -18,6 +18,7 @@
 
 package org.apache.flink.ceppro.nfa.aftermatch;
 
+import org.apache.flink.api.java.tuple.Tuple2;
 import org.apache.flink.ceppro.nfa.ComputationState;
 import org.apache.flink.ceppro.nfa.sharedbuffer.EventId;
 import org.apache.flink.ceppro.nfa.sharedbuffer.SharedBufferAccessor;
@@ -101,7 +102,7 @@ public abstract class AfterMatchSkipStrategy implements Serializable {
 	 */
 	public void prune(
 			Collection<ComputationState> matchesToPrune,
-			Collection<Map<String, List<EventId>>> matchedResult,
+			Collection<Map<Tuple2<String,String>, List<EventId>>> matchedResult,
 			SharedBufferAccessor<?> sharedBufferAccessor) throws Exception {
 
 		EventId pruningId = getPruningId(matchedResult);
@@ -133,7 +134,7 @@ public abstract class AfterMatchSkipStrategy implements Serializable {
 	 * @param match match corresponding to which should the pruning happen
 	 * @return pruning event id
 	 */
-	protected abstract EventId getPruningId(Collection<Map<String, List<EventId>>> match);
+	protected abstract EventId getPruningId(Collection<Map<Tuple2<String,String>, List<EventId>>> match);
 
 	/**
 	 * Name of pattern that processing will be skipped to.

@@ -18,6 +18,7 @@
 
 package org.apache.flink.ceppro.nfa.aftermatch;
 
+import org.apache.flink.api.java.tuple.Tuple2;
 import org.apache.flink.ceppro.nfa.sharedbuffer.EventId;
 
 import java.util.Collection;
@@ -47,7 +48,7 @@ public class NoSkipStrategy extends AfterMatchSkipStrategy {
 	}
 
 	@Override
-	protected EventId getPruningId(Collection<Map<String, List<EventId>>> match) {
+	protected EventId getPruningId(Collection<Map<Tuple2<String,String>, List<EventId>>> match) {
 		throw new IllegalStateException("This should never happen. Please file a bug.");
 	}
 

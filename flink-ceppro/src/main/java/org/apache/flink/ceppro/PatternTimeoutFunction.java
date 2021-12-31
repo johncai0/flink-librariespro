@@ -23,12 +23,13 @@ import org.apache.flink.api.common.functions.Function;
 import java.io.Serializable;
 import java.util.List;
 import java.util.Map;
+import org.apache.flink.api.java.tuple.Tuple2;
 
 /**
  * Base interface for a pattern timeout function. A pattern timeout function is called with a
  * map containing the timed out partial events which can be accessed by their names and the
  * timestamp when the timeout occurred. The names depend on the definition of the
- * {@link org.apache.flink.cep.pattern.Pattern}. The timeout method returns exactly one result. If
+ * {@link org.apache.flink.ceppro.pattern.Pattern}. The timeout method returns exactly one result. If
  * you want to return more than one result, then you have to implement a
  * {@link PatternFlatTimeoutFunction}.
  *
@@ -53,5 +54,5 @@ public interface PatternTimeoutFunction<IN, OUT> extends Function, Serializable 
 	 * @throws Exception This method may throw exceptions. Throwing an exception will cause the
 	 * 					 operation to fail and may trigger recovery.
 	 */
-	OUT timeout(Map<String, List<IN>> pattern, long timeoutTimestamp) throws Exception;
+	OUT timeout(Map<Tuple2<String,String>, List<IN>> pattern, long timeoutTimestamp) throws Exception;
 }

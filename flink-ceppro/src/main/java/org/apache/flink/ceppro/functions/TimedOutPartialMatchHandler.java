@@ -23,6 +23,7 @@ import org.apache.flink.streaming.api.windowing.time.Time;
 
 import java.util.List;
 import java.util.Map;
+import org.apache.flink.api.java.tuple.Tuple2;
 
 /**
  * Enables handling timed out partial matches. It shall be used in a mixin style. If you need your
@@ -43,7 +44,7 @@ import java.util.Map;
 public interface TimedOutPartialMatchHandler<IN> {
 
 	/**
-	 * Called for every timed out partial match (due to {@link org.apache.flink.cep.pattern.Pattern#within(Time)}).
+	 * Called for every timed out partial match (due to {@link org.apache.flink.ceppro.pattern.Pattern#within(Time)}).
 	 * It enables custom handling, e.g. one can emit the timed out results through a side output:
 	 *
 	 * <pre>
@@ -76,6 +77,6 @@ public interface TimedOutPartialMatchHandler<IN> {
 	 *                   operation to fail and may trigger recovery.
 	 */
 	void processTimedOutMatch(
-		final Map<String, List<IN>> match,
+		final Map<Tuple2<String,String>, List<IN>> match,
 		final PatternProcessFunction.Context ctx) throws Exception;
 }

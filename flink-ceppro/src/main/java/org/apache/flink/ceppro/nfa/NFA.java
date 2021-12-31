@@ -253,12 +253,12 @@ public class NFA<T> {
 	 * @return all timed outed partial matches
 	 * @throws Exception Thrown if the system cannot access the state.
 	 */
-	public Collection<Tuple2<Map<String, List<T>>, Long>> advanceTime(
+	public Collection<Tuple2<Map<Tuple2<String,String>, List<T>>, Long>> advanceTime(
 			final SharedBufferAccessor<T> sharedBufferAccessor,
 			final NFAState nfaState,
 			final long timestamp) throws Exception {
 
-		final Collection<Tuple2<Map<String, List<T>>, Long>> timeoutResult = new ArrayList<>();
+		final Collection<Tuple2<Map<Tuple2<String,String>, List<T>>, Long>> timeoutResult = new ArrayList<>();
 		final PriorityQueue<ComputationState> newPartialMatches = new PriorityQueue<>(NFAState.COMPUTATION_STATE_COMPARATOR);
 
 		for (ComputationState computationState : nfaState.getPartialMatches()) {
@@ -266,7 +266,7 @@ public class NFA<T> {
 
 				if (handleTimeout) {
 					// extract the timed out event pattern
-					Map<String, List<T>> timedOutPattern = sharedBufferAccessor.materializeMatch(extractCurrentMatches(
+					Map<Tuple2<String,String>, List<T>> timedOutPattern = sharedBufferAccessor.materializeMatch(extractCurrentMatches(
 						sharedBufferAccessor,
 						computationState));
 					timeoutResult.add(Tuple2.of(timedOutPattern, computationState.getStartTimestamp() + windowTime));
@@ -348,7 +348,7 @@ public class NFA<T> {
 			nfaState.setStateChanged();
 		}
 
-		List<Map<String, List<T>>> result = new ArrayList<>();
+		List<Map<Tuple2<String,String>, List<T>>> result = new ArrayList<>();
 		if (afterMatchSkipStrategy.isSkipStrategy()) {
 			processMatchesAccordingToSkipStrategy(sharedBufferAccessor,
 				nfaState,
@@ -358,7 +358,7 @@ public class NFA<T> {
 				result);
 		} else {
 			for (ComputationState match : potentialMatches) {
-				Map<String, List<T>> materializedMatch =
+				Map<Tuple2<String,String>, List<T>> materializedMatch =
 					sharedBufferAccessor.materializeMatch(
 						sharedBufferAccessor.extractPatterns(
 							match.getPreviousBufferEntry(),
@@ -373,13 +373,7 @@ public class NFA<T> {
 		nfaState.setNewPartialMatches(newPartialMatches);
 		//List<Map<String, List<T>>> result
 		// TODO: 2021/12/17 这个地方需要优化
-		return result.stream().map(l -> {
-			Map<Tuple2<String, String>, List<T>> nMap = new HashMap<>(l.size());
-			for (String key1 : l.keySet()) {
-				nMap.put(new Tuple2<>(this.key, key1), l.get(key1));
-			}
-			return nMap;
-		}).collect(Collectors.toList());
+		return result;
 	}
 
 	private void processMatchesAccordingToSkipStrategy(
@@ -388,7 +382,7 @@ public class NFA<T> {
 			AfterMatchSkipStrategy afterMatchSkipStrategy,
 			PriorityQueue<ComputationState> potentialMatches,
 			PriorityQueue<ComputationState> partialMatches,
-			List<Map<String, List<T>>> result) throws Exception {
+			List<Map<Tuple2<String,String>, List<T>>> result) throws Exception {
 
 		nfaState.getCompletedMatches().addAll(potentialMatches);
 
@@ -402,7 +396,7 @@ public class NFA<T> {
 
 				nfaState.setStateChanged();
 				nfaState.getCompletedMatches().poll();
-				List<Map<String, List<EventId>>> matchedResult =
+				List<Map<Tuple2<String,String>, List<EventId>>> matchedResult =
 					sharedBufferAccessor.extractPatterns(earliestMatch.getPreviousBufferEntry(), earliestMatch.getVersion());
 
 				afterMatchSkipStrategy.prune(
@@ -785,14 +779,14 @@ public class NFA<T> {
 	 * @return Collection of event sequences which end in the given computation state
 	 * @throws Exception Thrown if the system cannot access the state.
 	 */
-	private Map<String, List<EventId>> extractCurrentMatches(
+	private Map<Tuple2<String,String>, List<EventId>> extractCurrentMatches(
 			final SharedBufferAccessor<T> sharedBufferAccessor,
 			final ComputationState computationState) throws Exception {
 		if (computationState.getPreviousBufferEntry() == null) {
 			return new HashMap<>();
 		}
 
-		List<Map<String, List<EventId>>> paths = sharedBufferAccessor.extractPatterns(
+		List<Map<Tuple2<String,String>, List<EventId>>> paths = sharedBufferAccessor.extractPatterns(
 				computationState.getPreviousBufferEntry(),
 				computationState.getVersion());
 
@@ -822,7 +816,7 @@ public class NFA<T> {
 		 * pattern. This is evaluated <b>only once</b>, as this is an expensive
 		 * operation that traverses a path in the {@link SharedBuffer}.
 		 */
-		private Map<String, List<T>> matchedEvents;
+		private Map<Tuple2<String,String>, List<T>> matchedEvents;
 
 		private SharedBufferAccessor<T> sharedBufferAccessor;
 

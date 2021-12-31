@@ -568,7 +568,7 @@ public class CepOperator<IN, KEY, OUT>
     private void advanceTime(Map<String,NFAState> nfaStateMap, long timestamp) throws Exception {
         try (SharedBufferAccessor<IN> sharedBufferAccessor = partialMatches.getAccessor()) {
             for (String key:nfaStateMap.keySet()) {
-                Collection<Tuple2<Map<String, List<IN>>, Long>> timedOut =
+                Collection<Tuple2<Map<Tuple2<String,String>, List<IN>>, Long>> timedOut =
                         nfaMap.get(key).advanceTime(sharedBufferAccessor, nfaStateMap.get(key), timestamp);
                 if (!timedOut.isEmpty()) {
                     processTimedOutSequences(timedOut);
@@ -585,14 +585,14 @@ public class CepOperator<IN, KEY, OUT>
         }
     }
 
-    private void processTimedOutSequences(Collection<Tuple2<Map<String, List<IN>>, Long>> timedOutSequences) throws Exception {
+    private void processTimedOutSequences(Collection<Tuple2<Map<Tuple2<String,String>, List<IN>>, Long>> timedOutSequences) throws Exception {
         PatternProcessFunction<IN, OUT> function = getUserFunction();
         if (function instanceof TimedOutPartialMatchHandler) {
 
             @SuppressWarnings("unchecked")
             TimedOutPartialMatchHandler<IN> timeoutHandler = (TimedOutPartialMatchHandler<IN>) function;
 
-            for (Tuple2<Map<String, List<IN>>, Long> matchingSequence : timedOutSequences) {
+            for (Tuple2<Map<Tuple2<String,String>, List<IN>>, Long> matchingSequence : timedOutSequences) {
                 setTimestamp(matchingSequence.f1);
                 timeoutHandler.processTimedOutMatch(matchingSequence.f0, context);
             }

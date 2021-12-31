@@ -27,6 +27,7 @@ import org.apache.flink.ceppro.functions.TimedOutPartialMatchHandler;
 import org.apache.flink.configuration.Configuration;
 import org.apache.flink.util.Collector;
 import org.apache.flink.util.OutputTag;
+import org.apache.flink.api.java.tuple.Tuple2;
 
 import java.util.List;
 import java.util.Map;
@@ -75,7 +76,7 @@ public class PatternTimeoutFlatSelectAdapter<IN, OUT, T>
 
 	@Override
 	public void processTimedOutMatch(
-			Map<String, List<IN>> match,
+			Map<Tuple2<String,String>, List<IN>> match,
 			Context ctx) throws Exception {
 		sideCollector.setCtx(ctx);
 		flatTimeoutFunction.timeout(match, ctx.timestamp(), sideCollector);

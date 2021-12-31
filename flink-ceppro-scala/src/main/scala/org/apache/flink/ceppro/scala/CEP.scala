@@ -17,9 +17,15 @@
  */
 package org.apache.flink.ceppro.scala
 
+import java.util
+
+import org.apache.flink.ceppro.pattern.{Pattern => JPattern}
 import org.apache.flink.ceppro.scala.pattern.Pattern
 import org.apache.flink.ceppro.{EventComparator, CEP => JCEP}
 import org.apache.flink.streaming.api.scala.DataStream
+
+import scala.collection.JavaConverters.mapAsScalaMapConverter
+import scala.collection.mutable
 
 /**
   * Utility method to transform a [[DataStream]] into a [[PatternStream]] to do CEP.
@@ -32,12 +38,24 @@ object CEP {
     * Java API works.
     *
     * @param input   DataStream containing the input events
-    * @param pattern Pattern specification which shall be detected
+    * @param patternMap Pattern specification which shall be detected
     * @tparam T Type of the input events
     * @return Resulting pattern stream
     */
-  def pattern[T](input: DataStream[T], pattern: Pattern[T, _ <: T]): PatternStream[T] = {
-    wrapPatternStream(JCEP.pattern(input.javaStream, pattern.wrappedPattern))
+//  def pattern[T](input: DataStream[T], pattern: Pattern[T, _ <: T]): PatternStream[T] = {
+//    wrapPatternStream(JCEP.pattern(input.javaStream, pattern.wrappedPattern))
+//  }
+
+  def pattern[T](input: DataStream[T], patternMap: mutable.Map[String,Pattern[T, _ <: T]]): PatternStream[T] = {
+    wrapPatternStream(JCEP.pattern(input.javaStream, convPattern(patternMap)))
+  }
+
+  def pattern[T](input: DataStream[T], patternMap: util.Map[String,Pattern[T, _ <: T]]): PatternStream[T] = {
+    val javaPatternMap = new util.HashMap[String,JPattern[T,_ <: T]]()
+    patternMap.asScala.foreach(l => {
+      javaPatternMap.put(l._1,l._2.wrappedPattern)
+    })
+    wrapPatternStream(JCEP.pattern(input.javaStream, convPattern(patternMap)))
   }
 
   /**
@@ -46,16 +64,39 @@ object CEP {
     * Java API works.
     *
     * @param input      DataStream containing the input events
-    * @param pattern    Pattern specification which shall be detected
+    * @param patternMap    Pattern specification which shall be detected
     * @param comparator Comparator to sort events with equal timestamps
     * @tparam T Type of the input events
     * @return Resulting pattern stream
     */
-  def pattern[T](
-    input: DataStream[T],
-    pattern: Pattern[T, _ <: T],
-    comparator: EventComparator[T]): PatternStream[T] = {
-    wrapPatternStream(JCEP.pattern(input.javaStream, pattern.wrappedPattern, comparator))
+//  def pattern[T](
+//    input: DataStream[T],
+//    pattern: Pattern[T, _ <: T],
+//    comparator: EventComparator[T]): PatternStream[T] = {
+//    wrapPatternStream(JCEP.pattern(input.javaStream, pattern.wrappedPattern, comparator))
+//  }
+
+  def pattern[T](input: DataStream[T], patternMap: mutable.Map[String,Pattern[T, _ <: T]],comparator: EventComparator[T]): PatternStream[T] = {
+    wrapPatternStream(JCEP.pattern(input.javaStream, convPattern(patternMap),comparator))
+  }
+
+  def pattern[T](input: DataStream[T], patternMap: util.Map[String,Pattern[T, _ <: T]],comparator: EventComparator[T]): PatternStream[T] = {
+    wrapPatternStream(JCEP.pattern(input.javaStream, convPattern(patternMap),comparator))
+  }
+
+  private def convPattern[T](patternMap: mutable.Map[String,Pattern[T, _ <: T]]): util.HashMap[String,JPattern[T,_ <: T]] = {
+    val javaPatternMap = new util.HashMap[String,JPattern[T,_ <: T]](patternMap.size)
+    patternMap.foreach(l => {
+      javaPatternMap.put(l._1,l._2.wrappedPattern)
+    })
+    javaPatternMap
+  }
+  private def convPattern[T](patternMap: util.Map[String,Pattern[T, _ <: T]]): util.HashMap[String,JPattern[T,_ <: T]] = {
+    val javaPatternMap = new util.HashMap[String,JPattern[T,_ <: T]](patternMap.size())
+    patternMap.asScala.foreach(l => {
+      javaPatternMap.put(l._1,l._2.wrappedPattern)
+    })
+    javaPatternMap
   }
 }
 

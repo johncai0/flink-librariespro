@@ -28,6 +28,7 @@ import org.apache.flink.ceppro.PatternSelectFunction;
 import org.apache.flink.ceppro.PatternTimeoutFunction;
 import org.apache.flink.configuration.Configuration;
 import org.apache.flink.util.OutputTag;
+import org.apache.flink.api.java.tuple.Tuple2;
 
 import java.util.List;
 import java.util.Map;
@@ -70,7 +71,7 @@ public class PatternTimeoutSelectAdapter<IN, OUT, T>
 
 	@Override
 	public void processTimedOutMatch(
-			final Map<String, List<IN>> match,
+			final Map<Tuple2<String,String>, List<IN>> match,
 			final Context ctx) throws Exception {
 
 		final T timedOutPatternResult = timeoutFunction.timeout(match, ctx.timestamp());

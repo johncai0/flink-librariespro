@@ -117,11 +117,11 @@ public class SharedBufferAccessor<V> implements AutoCloseable {
 	 * @param version Version of the previous relation which shall be extracted
 	 * @return Collection of previous relations starting with the given value
 	 */
-	public List<Map<String, List<EventId>>> extractPatterns(
+	public List<Map<Tuple2<String,String>, List<EventId>>> extractPatterns(
 		final NodeId nodeId,
 		final DeweyNumber version) {
 
-		List<Map<String, List<EventId>>> result = new ArrayList<>();
+		List<Map<Tuple2<String,String>, List<EventId>>> result = new ArrayList<>();
 
 		// stack to remember the current extraction states
 		Stack<SharedBufferAccessor.ExtractionState> extractionStates = new Stack<>();
@@ -142,14 +142,14 @@ public class SharedBufferAccessor<V> implements AutoCloseable {
 
 				// termination criterion
 				if (currentEntry == null) {
-					final Map<String, List<EventId>> completePath = new LinkedHashMap<>();
+					final Map<Tuple2<String,String>, List<EventId>> completePath = new LinkedHashMap<>();
 
 					while (!currentPath.isEmpty()) {
 						final NodeId currentPathEntry = currentPath.pop().f0;
 
 						String page = currentPathEntry.getPageName();
 						List<EventId> values = completePath
-							.computeIfAbsent(page, k -> new ArrayList<>());
+							.computeIfAbsent(Tuple2.of(nodeId.getKey(),page), k -> new ArrayList<>());
 						values.add(currentPathEntry.getEventId());
 					}
 					result.add(completePath);
@@ -195,10 +195,10 @@ public class SharedBufferAccessor<V> implements AutoCloseable {
 	 * @param match the matched event's eventId.
 	 * @return the event associated with the eventId.
 	 */
-	public Map<String, List<V>> materializeMatch(Map<String, List<EventId>> match) {
-		Map<String, List<V>> materializedMatch = new LinkedHashMap<>(match.size());
+	public Map<Tuple2<String,String>, List<V>> materializeMatch(Map<Tuple2<String,String>, List<EventId>> match) {
+		Map<Tuple2<String,String>, List<V>> materializedMatch = new LinkedHashMap<>(match.size());
 
-		for (Map.Entry<String, List<EventId>> pattern : match.entrySet()) {
+		for (Map.Entry<Tuple2<String,String>, List<EventId>> pattern : match.entrySet()) {
 			List<V> events = new ArrayList<>(pattern.getValue().size());
 			for (EventId eventId : pattern.getValue()) {
 				try {

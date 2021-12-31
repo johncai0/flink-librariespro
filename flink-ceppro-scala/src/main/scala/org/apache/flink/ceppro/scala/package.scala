@@ -19,6 +19,7 @@ package org.apache.flink.ceppro
 
 import java.util.{List => JList, Map => JMap}
 
+import org.apache.flink.api.java.tuple.Tuple2
 import org.apache.flink.api.scala.ClosureCleaner
 import org.apache.flink.ceppro.{PatternStream => JPatternStream}
 
@@ -48,8 +49,10 @@ package object scala {
     f
   }
 
-  private[flink] def mapToScala[T](map: JMap[String, JList[T]]): Map[String, Iterable[T]] = {
-    map.asScala.mapValues(_.asScala.toIterable)
+  private[flink] def mapToScala[T](map:JMap[Tuple2[String,String], JList[T]]): Map[(String,String), Iterable[T]] = {
+    map.asScala.map(e => {
+      ((e._1.f0,e._1.f1),e._2.asScala)
+    })
   }
 }
 

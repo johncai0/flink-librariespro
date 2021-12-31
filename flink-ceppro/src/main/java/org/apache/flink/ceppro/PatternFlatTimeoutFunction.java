@@ -20,6 +20,7 @@ package org.apache.flink.ceppro;
 
 import org.apache.flink.api.common.functions.Function;
 import org.apache.flink.util.Collector;
+import org.apache.flink.api.java.tuple.Tuple2;
 
 import java.io.Serializable;
 import java.util.List;
@@ -29,7 +30,7 @@ import java.util.Map;
  * Base interface for a pattern timeout function which can produce multiple resulting elements. A
  * pattern flat timeout function is called with a map of partial events which are identified by
  * their names and the timestamp when the timeout occurred. The names are defined by the
- * {@link org.apache.flink.cep.pattern.Pattern} specifying the sought-after pattern.
+ * {@link org.apache.flink.ceppro.pattern.Pattern} specifying the sought-after pattern.
  * Additionally, a collector is provided as a parameter. The collector is used to emit an arbitrary
  * number of resulting elements.
  *
@@ -53,5 +54,5 @@ public interface PatternFlatTimeoutFunction<IN, OUT> extends Function, Serializa
 	 * @throws Exception This method may throw exceptions. Throwing an exception will cause the
 	 * 					 operation to fail and may trigger recovery.
 	 */
-	void timeout(Map<String, List<IN>> pattern, long timeoutTimestamp, Collector<OUT> out) throws Exception;
+	void timeout(Map<Tuple2<String,String>, List<IN>> pattern, long timeoutTimestamp, Collector<OUT> out) throws Exception;
 }
