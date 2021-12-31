@@ -10,7 +10,7 @@
     <modelVersion>4.0.0</modelVersion>
 
 <!--    <groupId>org.apache.flink.librariesplus.test</groupId>-->
-    <artifactId>flink-librariesplus-test</artifactId>
+    <artifactId>flink-librariespro-test</artifactId>
     <version>${model.version}</version>
     <build>
         <plugins>
