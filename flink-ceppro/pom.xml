@@ -24,7 +24,7 @@ under the License.
     <modelVersion>4.0.0</modelVersion>
 
     <parent>
-        <artifactId>flink-librariesplus</artifactId>
+        <artifactId>flink-librariespro</artifactId>
         <groupId>org.apache.flink</groupId>
         <version>1.0.0</version>
     </parent>

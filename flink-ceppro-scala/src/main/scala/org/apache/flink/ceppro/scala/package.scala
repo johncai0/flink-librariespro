@@ -50,6 +50,7 @@ package object scala {
   }
 
   private[flink] def mapToScala[T](map:JMap[Tuple2[String,String], JList[T]]): Map[(String,String), Iterable[T]] = {
+//    map.asScala.mapValues(_.asScala)
     map.asScala.map(e => {
       ((e._1.f0,e._1.f1),e._2.asScala)
     })
