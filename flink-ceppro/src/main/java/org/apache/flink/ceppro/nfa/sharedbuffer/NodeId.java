@@ -136,6 +136,8 @@ public class NodeId {
 				target.writeByte(1);
 				eventIdSerializer.serialize(record.eventId, target);
 				StringValue.writeString(record.pageName, target);
+				// TODO: 2022/1/1 序列化
+				StringValue.writeString(record.key,target);
 			} else {
 				target.writeByte(0);
 			}
@@ -150,6 +152,7 @@ public class NodeId {
 			// TODO: 2021/12/18 检测正确性
 			EventId eventId = eventIdSerializer.deserialize(source);
 			String pageName = StringValue.readString(source);
+			// TODO: 2022/1/1 反序列化
 			String key = StringValue.readString(source);
 			return new NodeId(eventId, pageName,key);
 		}

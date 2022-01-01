@@ -11,7 +11,10 @@ import org.apache.flink.ceppro.RichPatternSelectFunction
 import org.apache.flink.ceppro.pattern.conditions.{IterativeCondition, RichIterativeCondition}
 import org.apache.flink.ceppro.scala.CEP
 import org.apache.flink.ceppro.scala.pattern.Pattern
-import org.apache.flink.streaming.api.TimeCharacteristic
+import org.apache.flink.contrib.streaming.state.RocksDBStateBackend
+import org.apache.flink.streaming.api.environment.CheckpointConfig
+import org.apache.flink.streaming.api.environment.CheckpointConfig.ExternalizedCheckpointCleanup
+import org.apache.flink.streaming.api.{CheckpointingMode, TimeCharacteristic}
 import org.apache.flink.streaming.api.functions.AssignerWithPunctuatedWatermarks
 import org.apache.flink.streaming.api.scala._
 import org.apache.flink.streaming.api.watermark.Watermark
@@ -28,6 +31,9 @@ object MultPatternScalaTest {
     val env = StreamExecutionEnvironment.getExecutionEnvironment
     env.setStreamTimeCharacteristic(TimeCharacteristic.EventTime)
     env.setParallelism(1)
+    env.setStateBackend(new RocksDBStateBackend("hdfs://cluster/checkPoint"))
+    env.enableCheckpointing(60000,CheckpointingMode.EXACTLY_ONCE)
+    env.getCheckpointConfig.enableExternalizedCheckpoints(ExternalizedCheckpointCleanup.RETAIN_ON_CANCELLATION)
     val prop = new Properties
     prop.setProperty("bootstrap.servers", "hadoop01:9092,hadoop02:9092,hadoop03:9092")
     prop.setProperty("group.id", "johnGroup")
