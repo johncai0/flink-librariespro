@@ -1,7 +1,8 @@
 # flink-librariespro 一个可以支持一条流多个pattern cep库
 
-## 接下来会支持动态改变pattern，动态改变个数何pattern的内容
-
+## 接下来会支持动态改变pattern，动态改变个数何pattern的内容 --已完成
+## 增量pattern更新已支持
+## 动态pattern代码热更新目前只支持了java，后续将支持scala
 ---
 首次测试通过, demo `org.apache.flink.librariesplus.test.MultPatternTest`
 
