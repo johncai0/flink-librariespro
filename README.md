@@ -4,7 +4,7 @@
 ## 增量pattern更新已支持
 ## 动态pattern代码热更新目前只支持了java，后续将支持scala
 ---
-首次测试通过, demo `org.apache.flink.librariesplus.test.MultPatternTest`
+测试通过, demo `org.apache.flink.librariesplus.test.MultPatternTest`
 
 日志格式：
 
